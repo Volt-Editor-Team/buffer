@@ -6,7 +6,7 @@ import buffer
 // --- initialization ---
 struct GapBuffer {
 mut:
-	data []u8
+	data []buffer.StorageValue
 	gap  Gap
 }
 
@@ -55,25 +55,25 @@ pub fn (mut g GapBuffer) insert(index int, val buffer.InsertValue) {
 // }
 
 pub fn (mut g GapBuffer) delete(cursor int, count int) {
-	byte_index := g.char_to_byte_index(cursor)
-	g.shift_gap_to(byte_index)
-	if g.gap.end + count > g.data.len {
-		g.gap.end = g.data.len
-	} else {
-		total_bytes := g.char_to_byte_index(cursor + count) - byte_index
-		g.gap.end += total_bytes
-	}
+	g.shift_gap_to(cursor)
+	g.gap.end = math.min(g.gap.end + count, g.data.len)
 }
 
 pub fn (g GapBuffer) to_string() string {
 	// Only take the parts before and after the gap
-	before := g.data[..g.gap.start]
-	after := g.data[g.gap.end..]
-	return before.bytestr() + after.bytestr()
+	before := g.data[..g.gap.start].map(match it {
+		u8 { rune(it) }
+		rune { it }
+	})
+	after := g.data[g.gap.end..].map(match it {
+		u8 { rune(it) }
+		rune { it }
+	})
+	return before.string() + after.string()
 }
 
 pub fn (g GapBuffer) len() int {
-	return g.to_string().runes().len
+	return g.data.len
 }
 
 pub fn (g GapBuffer) line_count() int {
