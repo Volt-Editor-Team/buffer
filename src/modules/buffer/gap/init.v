@@ -6,7 +6,7 @@ import buffer
 // --- initialization ---
 struct GapBuffer {
 mut:
-	data []buffer.StorageValue
+	data []rune
 	gap  Gap
 }
 
@@ -61,15 +61,7 @@ pub fn (mut g GapBuffer) delete(cursor int, count int) {
 
 pub fn (g GapBuffer) to_string() string {
 	// Only take the parts before and after the gap
-	before := g.data[..g.gap.start].map(match it {
-		u8 { rune(it) }
-		rune { it }
-	})
-	after := g.data[g.gap.end..].map(match it {
-		u8 { rune(it) }
-		rune { it }
-	})
-	return before.string() + after.string()
+	return g.get_runes().string()
 }
 
 pub fn (g GapBuffer) len() int {

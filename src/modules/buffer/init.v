@@ -22,5 +22,3 @@ mut:
 }
 
 pub type InsertValue = rune | u8 | []rune | string
-
-pub type StorageValue = rune | u8

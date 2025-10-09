@@ -5,15 +5,17 @@ import arrays
 
 const gap_bytes = 64
 
+fn (g GapBuffer) get_runes() []rune {
+	return []rune{len: g.data.len - (g.gap.end - g.gap.start), init: if index >= g.gap.start {
+		g.data[index + (g.gap.end - g.gap.start)]
+	} else {
+		g.data[index]
+	}}
+}
+
 pub fn (g GapBuffer) debug_string() string {
-	before := g.data[..g.gap.start].map(match it {
-		u8 { rune(it) }
-		else { it as rune }
-	})
-	after := g.data[g.gap.end..].map(match it {
-		u8 { rune(it) }
-		else { it as rune }
-	})
+	before := g.data[..g.gap.start]
+	after := g.data[g.gap.end..]
 	gap_len := g.gap.end - g.gap.start
 	capacity := g.data.cap - gap_len - (before.len + after.len)
 	return '${before.string()}[gap: ${gap_len}]${after.string()}\ncapacity: ${capacity}'

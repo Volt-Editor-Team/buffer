@@ -3,18 +3,14 @@ module gap
 fn (mut g GapBuffer) insert_rune(cursor int, ch rune) {
 	check_gap_size(mut g, 1)
 	g.shift_gap_to(cursor)
-	if ch.length_in_bytes() == 1 {
-		g.data[g.gap.start] = u8(ch)
-	} else {
-		g.data[g.gap.start] = ch
-	}
-	g.gap.start += 1
+	g.data[g.gap.start] = ch
+	g.gap.start++
 }
 
 fn (mut g GapBuffer) insert_char(cursor int, ch u8) {
 	check_gap_size(mut g, 1)
 	g.shift_gap_to(cursor)
-	g.data[g.gap.start] = ch
+	g.data[g.gap.start] = rune(ch)
 	g.gap.start++
 }
 
@@ -22,11 +18,7 @@ fn (mut g GapBuffer) insert_runes(cursor int, slice []rune) {
 	check_gap_size(mut g, slice.len)
 	g.shift_gap_to(cursor)
 	for i, ch in slice {
-		if ch.length_in_bytes() == 1 {
-			g.data[g.gap.start + i] = u8(ch)
-		} else {
-			g.data[g.gap.start + i] = ch
-		}
+		g.data[g.gap.start + i] = ch
 	}
 	g.gap.start += slice.len
 }
