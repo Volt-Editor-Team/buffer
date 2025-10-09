@@ -1,42 +1,39 @@
 module gap
 
 fn (mut g GapBuffer) insert_rune(cursor int, ch rune) {
-	check_gap_size(mut g, 1)
-	g.shift_gap_to(cursor)
-	if ch.length_in_bytes() == 1 {
-		g.data[g.gap.start] = u8(ch)
-	} else {
-		g.data[g.gap.start] = ch
+	check_gap_size(mut g, ch.length_in_bytes())
+	byte_index := g.char_to_byte_index(cursor)
+	g.shift_gap_to(byte_index)
+	for i, byte in ch.bytes() {
+		g.data[g.gap.start + i] = byte
 	}
-	g.gap.start += 1
+	g.gap.start += ch.length_in_bytes()
 }
 
 fn (mut g GapBuffer) insert_char(cursor int, ch u8) {
 	check_gap_size(mut g, 1)
-	g.shift_gap_to(cursor)
+	byte_index := g.char_to_byte_index(cursor)
+	g.shift_gap_to(byte_index)
 	g.data[g.gap.start] = ch
 	g.gap.start++
 }
 
-fn (mut g GapBuffer) insert_runes(cursor int, slice []rune) {
-	check_gap_size(mut g, slice.len)
-	g.shift_gap_to(cursor)
-	for i, ch in slice {
-		if ch.length_in_bytes() == 1 {
-			g.data[g.gap.start + i] = u8(ch)
-		} else {
-			g.data[g.gap.start + i] = ch
-		}
+fn (mut g GapBuffer) insert_bytes(cursor int, bytes []u8) {
+	check_gap_size(mut g, bytes.len)
+	byte_index := g.char_to_byte_index(cursor)
+	g.shift_gap_to(byte_index)
+	for i, b in bytes {
+		g.data[g.gap.start + i] = b
 	}
-	g.gap.start += slice.len
+	g.gap.start += bytes.len
 }
 
-fn (mut g GapBuffer) insert_bytes(cursor int, bytes []u8) {
-	runes := bytes.bytestr().runes()
-	g.insert_runes(cursor, runes)
+fn (mut g GapBuffer) insert_runes(cursor int, slice []rune) {
+	bytes := slice.string().bytes()
+	g.insert_bytes(cursor, bytes)
 }
 
 fn (mut g GapBuffer) insert_string(cursor int, str string) {
-	runes := str.runes()
-	g.insert_runes(cursor, runes)
+	bytes := str.bytes()
+	g.insert_bytes(cursor, bytes)
 }

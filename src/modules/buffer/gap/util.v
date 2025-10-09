@@ -5,24 +5,31 @@ import arrays
 
 const gap_bytes = 64
 
+pub fn (g GapBuffer) char_to_byte_index(i int) int {
+	mut index := 0
+	for ch_index, r in g.to_string().runes_iterator() {
+		if ch_index == i {
+			return index
+		}
+		index += r.length_in_bytes()
+	}
+
+	return index
+}
+
 pub fn (g GapBuffer) debug_string() string {
-	before := g.data[..g.gap.start].map(match it {
-		u8 { rune(it) }
-		else { it as rune }
-	})
-	after := g.data[g.gap.end..].map(match it {
-		u8 { rune(it) }
-		else { it as rune }
-	})
+	before := g.data[..g.gap.start]
+	after := g.data[g.gap.end..]
 	gap_len := g.gap.end - g.gap.start
 	capacity := g.data.cap - gap_len - (before.len + after.len)
-	return '${before.string()}[gap: ${gap_len}]${after.string()}\ncapacity: ${capacity}'
+	return '${before.bytestr()}[gap: ${gap_len}]${after.bytestr()}\ncapacity: ${capacity}'
 }
 
 // gap memcpy
 fn (mut g GapBuffer) shift_gap_to(curs int) {
 	gap_len := g.gap.end - g.gap.start
-	cursor := math.min(math.max(curs, 0), g.data.len - gap_len)
+	byte_index := g.char_to_byte_index(curs)
+	cursor := math.min(byte_index, g.data.len - gap_len)
 	if cursor == g.gap.start {
 		return
 	}

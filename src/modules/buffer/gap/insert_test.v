@@ -93,7 +93,7 @@ fn test_insert_emoji_one() {
 	assert buf.debug_string() == '[gap: 0]\ncapacity: 0'
 	buf.insert(0, `🌎`)
 	assert buf.to_string() == '🌎'
-	assert buf.debug_string() == '🌎[gap: 63]\ncapacity: 64'
+	assert buf.debug_string() == '🌎[gap: 60]\ncapacity: 64'
 }
 
 fn test_insert_emoji_end() {
@@ -102,10 +102,10 @@ fn test_insert_emoji_end() {
 	assert buf.debug_string() == '[gap: 0]\ncapacity: 0'
 	buf.insert(0, `🌎`)
 	assert buf.to_string() == '🌎'
-	assert buf.debug_string() == '🌎[gap: 63]\ncapacity: 64'
+	assert buf.debug_string() == '🌎[gap: 60]\ncapacity: 64'
 	buf.insert(1, `🌎`)
 	assert buf.to_string() == '🌎🌎'
-	assert buf.debug_string() == '🌎🌎[gap: 62]\ncapacity: 64'
+	assert buf.debug_string() == '🌎🌎[gap: 56]\ncapacity: 64'
 }
 
 // testing edge cases
@@ -115,7 +115,7 @@ fn test_insert_out_of_bounds_larger() {
 	assert buf.debug_string() == '[gap: 0]\ncapacity: 0'
 	buf.insert(10000, `🌎`)
 	assert buf.to_string() == '🌎'
-	assert buf.debug_string() == '🌎[gap: 63]\ncapacity: 64'
+	assert buf.debug_string() == '🌎[gap: 60]\ncapacity: 64'
 }
 
 fn test_insert_out_of_bounds_smaller() {
@@ -124,7 +124,7 @@ fn test_insert_out_of_bounds_smaller() {
 	assert buf.debug_string() == '[gap: 0]\ncapacity: 0'
 	buf.insert(-10000, `🌎`)
 	assert buf.to_string() == '🌎'
-	assert buf.debug_string() == '🌎[gap: 63]\ncapacity: 64'
+	assert buf.debug_string() == '🌎[gap: 60]\ncapacity: 64'
 }
 
 // mix and match different insert functions
