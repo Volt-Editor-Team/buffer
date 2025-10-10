@@ -1,9 +1,10 @@
 module rope
 
-import buffer
+import buffer { Buffer, InsertValue }
 
 // --- initialization ---
 pub struct RopeBuffer {
+mut:
 	root &RopeNode
 }
 
@@ -13,46 +14,14 @@ pub mut:
 	left   ?&RopeNode
 	right  ?&RopeNode
 	weight int // number of characters in left subtree
-	data   buffer.Buffer
+	data   Buffer
 }
 
-pub fn RopeBuffer.new(b buffer.Buffer) RopeBuffer {
+pub fn RopeBuffer.new(b Buffer) RopeBuffer {
 	return RopeBuffer{
 		root: &RopeNode{
 			data: b
 		}
-	}
-}
-
-struct RopeIter {
-mut:
-	stack []&RopeNode
-	curr  ?&RopeNode
-}
-
-fn (mut it RopeIter) next() ?&RopeNode {
-	mut node := it.curr or { return none }
-
-	// Prepare next node
-	if node.right != none {
-		mut next := node.right
-		for next.left != none {
-			it.stack << next
-			next = next.left?
-		}
-		it.curr = next
-	} else if it.stack.len > 0 {
-		it.curr = it.stack.pop()
-	} else {
-		it.curr = none
-	}
-
-	return node
-}
-
-fn (r RopeBuffer) rope_iter() &RopeIter {
-	return &RopeIter{
-		curr: r.root
 	}
 }
 
@@ -68,9 +37,8 @@ fn (r RopeBuffer) rope_iter() &RopeIter {
 // - [ ] index_to_line_col(i int) (int, int)
 // - [ ] line_col_to_index(line int, col int) int
 
-pub fn (mut r RopeBuffer) insert(cursor int, s buffer.InsertValue) {
-	mut node := r.root.get_node(cursor)
-	node.data.insert(cursor, s)
+pub fn (mut r RopeBuffer) insert(cursor int, s InsertValue) {
+	r.root.insert(cursor, s, r.root.weight)
 }
 
 pub fn delete(cursor int, n int) {

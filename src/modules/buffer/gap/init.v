@@ -1,7 +1,7 @@
 module gap
 
 import math
-import buffer
+import buffer { InsertValue }
 
 // --- initialization ---
 struct GapBuffer {
@@ -32,7 +32,7 @@ pub fn GapBuffer.new() GapBuffer {
 // - [ ] index_to_line_col(i int) (int, int)
 // - [ ] line_col_to_index(line int, col int) int
 
-pub fn (mut g GapBuffer) insert(index int, val buffer.InsertValue) {
+pub fn (mut g GapBuffer) insert(index int, val InsertValue) {
 	match val {
 		rune {
 			g.insert_rune(index, val)
