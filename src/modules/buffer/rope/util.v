@@ -34,34 +34,93 @@ fn (r RopeBuffer) rope_iter() &RopeIter {
 	}
 }
 
-fn (r &RopeNode) get_node(weight int) &RopeNode {
-	if r.left == none && r.right == none {
-		return r
+fn (mut r RopeBuffer) check_split(node &RopeNode) {
+	if node.left != none || node.right != none {
+		return
 	} else {
-		if weight < r.weight {
-			node := r.left or { panic('Invalid tree state: expected left node') }
+		if node.data != none {
+			if node.data.len() > r.node_cap {
+				// left, right := node.data.split()
+				// node.left = left
+				// node.right = right
+				// node.weight = left.len()
+				// node.data = none
+			}
+		} else {
+			panic('Invalid Node')
+		}
+	}
+}
+
+fn (n &RopeNode) get_node(weight int) &RopeNode {
+	if n.left == none && n.right == none {
+		return n
+	} else {
+		if weight < n.weight {
+			node := n.left or { panic('Invalid tree state: expected left node') }
 			return node.get_node(weight)
 		} else {
-			node := r.right or { panic('Invalid tree state: expected right node') }
+			node := n.right or { panic('Invalid tree state: expected right node') }
 			return node.get_node(weight)
 		}
 	}
 }
 
-fn (mut r RopeNode) insert(weight int, val InsertValue, offset int) &RopeNode {
-	if r.left == none && r.right == none {
-		index := weight - offset
-		r.data.insert(index, val)
-		return r
+pub fn (n &RopeNode) total_len() int {
+	if n.left == none && n.right == none {
+		if n.data != none {
+			return n.data.len()
+		}
+		return 0
 	} else {
-		if weight < r.weight {
-			r.weight += get_insert_value_size(val)
-			mut node := r.left or { panic('Invalid tree state: expected left node') }
-			return node.insert(weight, val, offset)
+		mut total := 0
+		if n.left != none {
+			total += n.left.total_len()
+		}
+		if n.right != none {
+			total += n.right.total_len()
+		}
+		return total
+	}
+}
+
+fn (mut r RopeNode) insert(pos int, val InsertValue, offset int) {
+	if r.left == none && r.right == none {
+		if r.data != none {
+			index := pos - offset
+			r.data.insert(index, val)
 		} else {
-			new_index_start := r.weight
-			mut node := r.right or { panic('Invalid tree state: expected right node') }
-			return node.insert(weight, val, new_index_start)
+			panic('Invalid Node')
+		}
+	} else {
+		if pos < r.weight {
+			r.weight += get_insert_value_size(val)
+			mut left := r.left or { panic('Invalid tree state: expected left node') }
+			left.insert(pos, val, offset)
+		} else {
+			mut right := r.right or { panic('Invalid tree state: expected right node') }
+			right.insert(pos, val, r.weight)
+		}
+	}
+}
+
+fn (mut r RopeNode) delete(pos int, num int, offset int) {
+	if r.left == none && r.right == none {
+		if r.data != none {
+			index := pos - offset
+			r.data.delete(index, num)
+			r.weight = r.data.len()
+		} else {
+			panic('Invalid Node')
+		}
+	} else {
+		if pos < r.weight {
+			mut left := r.left or { panic('Invalid tree state: expected left node') }
+			left.delete(pos, num, offset)
+			r.weight = left.total_len()
+		} else {
+			mut right := r.right or { panic('Invalid tree state: expected right node') }
+			right.delete(pos, num, r.weight)
 		}
 	}
 }

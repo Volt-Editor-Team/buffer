@@ -1,6 +1,6 @@
 module gap
 
-import math
+// import math
 
 // pub fn (mut g GapBuffer) remove(cursor int, count int) {
 // 	byte_index := g.char_to_byte_index(cursor)

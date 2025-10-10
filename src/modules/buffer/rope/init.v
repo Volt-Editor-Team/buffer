@@ -1,11 +1,12 @@
 module rope
 
-import buffer { Buffer, InsertValue }
+import buffer { InsertValue, RopeData }
 
 // --- initialization ---
 pub struct RopeBuffer {
 mut:
-	root &RopeNode
+	root     &RopeNode
+	node_cap int = 2 // number of chacters in leaf before splitting
 }
 
 @[heap]
@@ -14,10 +15,10 @@ pub mut:
 	left   ?&RopeNode
 	right  ?&RopeNode
 	weight int // number of characters in left subtree
-	data   Buffer
+	data   ?RopeData
 }
 
-pub fn RopeBuffer.new(b Buffer) RopeBuffer {
+pub fn RopeBuffer.new(b RopeData) RopeBuffer {
 	return RopeBuffer{
 		root: &RopeNode{
 			data: b
@@ -38,16 +39,19 @@ pub fn RopeBuffer.new(b Buffer) RopeBuffer {
 // - [ ] line_col_to_index(line int, col int) int
 
 pub fn (mut r RopeBuffer) insert(cursor int, s InsertValue) {
-	r.root.insert(cursor, s, r.root.weight)
+	r.root.insert(cursor, s, 0)
 }
 
-pub fn delete(cursor int, n int) {
+pub fn (mut r RopeBuffer) delete(cursor int, n int) {
+	r.root.delete(cursor, n, 0)
 }
 
 pub fn (r RopeBuffer) to_string() string {
 	mut res := ''
 	for node in r.rope_iter() {
-		res += node.data.to_string()
+		if node.data != none {
+			res += node.data.to_string()
+		}
 	}
 	return res
 }

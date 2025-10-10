@@ -1,9 +1,13 @@
 module gap
 
+import buffer { Buffer }
 import math
-import arrays
 
 const gap_bytes = 64
+
+pub fn (g GapBuffer) split() (Buffer, Buffer) {
+	return GapBuffer{}, GapBuffer{}
+}
 
 fn (g GapBuffer) get_runes() []rune {
 	return []rune{len: g.data.len - (g.gap.end - g.gap.start), init: if index >= g.gap.start {
@@ -54,7 +58,7 @@ fn check_gap_size(mut g GapBuffer, n_required int) {
 		if g.data.cap < g.data.len + n_required {
 			g.data.grow_cap(2 * math.max(g.data.len, gap_bytes))
 		}
-		g.data.grow_len(gap_bytes)
+		unsafe { g.data.grow_len(gap_bytes) }
 		g.gap.end = g.data.len
 	}
 }

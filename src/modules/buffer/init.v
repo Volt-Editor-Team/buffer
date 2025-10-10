@@ -21,6 +21,11 @@ mut:
 	delete(cursor int, n int)
 }
 
+pub interface RopeData {
+	Buffer
+	split() (Buffer, Buffer)
+}
+
 pub type InsertValue = rune | u8 | []rune | string
 
 pub fn get_insert_value_size(val InsertValue) int {
