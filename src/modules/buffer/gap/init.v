@@ -20,6 +20,16 @@ pub fn GapBuffer.new() GapBuffer {
 	return GapBuffer{}
 }
 
+pub fn GapBuffer.from(data []rune) GapBuffer {
+	return GapBuffer{
+		data: []rune{len: data.len, cap: 2 * data.len, init: data[index]}
+		gap:  Gap{
+			start: data.len
+			end:   data.len
+		}
+	}
+}
+
 // --- buffer interface ---
 // - [x] insert(cursor int, s InsertValue)
 // - [x] delete(cursor int, n int)
@@ -65,7 +75,7 @@ pub fn (g GapBuffer) to_string() string {
 }
 
 pub fn (g GapBuffer) len() int {
-	return g.data.len
+	return g.data[..g.gap.start].len + g.data[g.gap.end..].len
 }
 
 pub fn (g GapBuffer) line_count() int {
@@ -85,7 +95,7 @@ pub fn (g GapBuffer) line_at(i int) []rune {
 }
 
 pub fn (g GapBuffer) char_at(index int) rune {
-	return g.to_string().runes()[index]
+	return g.get_runes()[index]
 }
 
 pub fn (g GapBuffer) slice(start int, end int) string {

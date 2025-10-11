@@ -5,8 +5,12 @@ import math
 
 const gap_bytes = 64
 
-pub fn (g GapBuffer) split() (Buffer, Buffer) {
-	return GapBuffer{}, GapBuffer{}
+fn (g GapBuffer) split() (Buffer, Buffer) {
+	text := g.get_runes()
+	split := text.len / 2
+	left := GapBuffer.from(text[..split])
+	right := GapBuffer.from(text[split..])
+	return left, right
 }
 
 fn (g GapBuffer) get_runes() []rune {
