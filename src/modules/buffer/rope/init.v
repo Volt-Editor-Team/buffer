@@ -12,8 +12,8 @@ mut:
 @[heap]
 pub struct RopeNode {
 pub mut:
-	left   ?&RopeNode
-	right  ?&RopeNode
+	left   &RopeNode = unsafe { nil }
+	right  &RopeNode = unsafe { nil }
 	weight int // number of characters in left subtree
 	data   ?RopeData
 }
@@ -49,7 +49,9 @@ pub fn (mut r RopeBuffer) delete(cursor int, n int) {
 
 pub fn (r RopeBuffer) to_string() string {
 	mut res := ''
-	for node in r.rope_iter() {
+	mut nodes := []&RopeNode{}
+	in_order(r.root, mut nodes)
+	for node in nodes {
 		if node.data != none {
 			res += node.data.to_string()
 		}
@@ -59,7 +61,9 @@ pub fn (r RopeBuffer) to_string() string {
 
 pub fn (r RopeBuffer) len() int {
 	mut count := 0
-	for node in r.rope_iter() {
+	mut nodes := []&RopeNode{}
+	in_order(r.root, mut nodes)
+	for node in nodes {
 		if node.data != none {
 			count += node.data.len()
 		}

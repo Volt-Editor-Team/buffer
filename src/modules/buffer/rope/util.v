@@ -2,40 +2,78 @@ module rope
 
 import buffer { InsertValue, get_insert_value_size }
 
-struct RopeIter {
-mut:
-	stack []&RopeNode
-	curr  ?&RopeNode
-}
+// struct RopeIter {
+// mut:
+// 	current    ?&RopeNode
+// 	right_most ?&RopeNode
+// }
 
-fn (mut it RopeIter) next() ?&RopeNode {
-	mut node := it.curr or { return none }
+// fn (mut it RopeIter) has_next() bool {
+// 	return it.current != none
+// }
 
-	// Prepare next node
-	if node.right != none {
-		mut next := node.right
-		for next.left != none {
-			it.stack << next
-			next = next.left?
-		}
-		it.curr = next
-	} else if it.stack.len > 0 {
-		it.curr = it.stack.pop()
-	} else {
-		it.curr = none
+// fn (mut it RopeIter) next() ?&RopeNode {
+// 	if it.current == none {
+// 		return none
+// 	}
+// 	mut curr := it.current or { return none }
+// 	if curr.left == none {
+// 		it.current = curr.right
+// 		return curr
+// 	}
+
+// 	it.right_most = curr.left or { return none }
+
+// 	for {
+// 		rm := it.right_most or { return none }
+// 		right_node := rm.right or { return none }
+// 		current_node := it.current or { return none }
+// 		if rm.right == none || right_node == current_node {
+// 			break
+// 		}
+
+// 		it.right_most = rm.right
+// 	}
+
+// 	mut rm := it.right_most or { return none }
+
+// 	if rm.right == none {
+// 		unsafe {
+// 			rm.right = it.current
+// 		}
+// 		it.current = curr.left
+// 		return it.next() or { return none }
+// 	} else {
+// 		unsafe {
+// 			rm.right = none
+// 		}
+// 		it.current = curr.right
+// 		return curr
+// 	}
+// }
+
+// fn (r &RopeBuffer) rope_iter() RopeIter {
+// 	return RopeIter{
+// 		current: r.root
+// 	}
+// }
+
+fn in_order(node &RopeNode, mut res []&RopeNode) {
+	if node.left != unsafe { nil } {
+		in_order(node.left, mut res)
 	}
 
-	return node
-}
+	if node.data != none {
+		res << node
+	}
 
-fn (r RopeBuffer) rope_iter() &RopeIter {
-	return &RopeIter{
-		curr: r.root
+	if node.right != unsafe { nil } {
+		in_order(node.right, mut res)
 	}
 }
 
 fn (mut r RopeBuffer) check_split(mut node RopeNode) {
-	if node.left != none || node.right != none {
+	if node.left != unsafe { nil } || node.right != unsafe { nil } {
 		return
 	} else {
 		if node.data != none {
@@ -53,7 +91,7 @@ fn (mut r RopeBuffer) check_split(mut node RopeNode) {
 			}
 
 			// recursive check left to split
-			if node.left != none {
+			if node.left != unsafe { nil } {
 				if data := node.left.data {
 					if data.len() > r.node_cap {
 						r.check_split(mut node.left)
@@ -62,7 +100,7 @@ fn (mut r RopeBuffer) check_split(mut node RopeNode) {
 			}
 
 			// recursive check right to split
-			if node.right != none {
+			if node.right != unsafe { nil } {
 				if data := node.right.data {
 					if data.len() > r.node_cap {
 						r.check_split(mut node.right)
@@ -76,31 +114,35 @@ fn (mut r RopeBuffer) check_split(mut node RopeNode) {
 }
 
 fn (n &RopeNode) get_node(weight int) &RopeNode {
-	if n.left == none && n.right == none {
+	if n.left == unsafe { nil } && n.right == unsafe { nil } {
 		return n
 	} else {
 		if weight < n.weight {
-			node := n.left or { panic('Invalid tree state: expected left node') }
-			return node.get_node(weight)
+			if n.left == unsafe { nil } {
+				panic('Invalid tree state: expected left node')
+			}
+			return n.left.get_node(weight)
 		} else {
-			node := n.right or { panic('Invalid tree state: expected right node') }
-			return node.get_node(weight)
+			if n.right == unsafe { nil } {
+				panic('Invalid tree state: expected right node')
+			}
+			return n.right.get_node(weight)
 		}
 	}
 }
 
 pub fn (n &RopeNode) total_len() int {
-	if n.left == none && n.right == none {
+	if n.left == unsafe { nil } && n.right == unsafe { nil } {
 		if n.data != none {
 			return n.data.len()
 		}
 		return 0
 	} else {
 		mut total := 0
-		if n.left != none {
+		if n.left != unsafe { nil } {
 			total += n.left.total_len()
 		}
-		if n.right != none {
+		if n.right != unsafe { nil } {
 			total += n.right.total_len()
 		}
 		return total
@@ -108,43 +150,51 @@ pub fn (n &RopeNode) total_len() int {
 }
 
 fn (mut r RopeNode) insert(pos int, val InsertValue, offset int) &RopeNode {
-	if r.left == none && r.right == none {
-		if r.data != none {
+	if r.left == unsafe { nil } && r.right == unsafe { nil } {
+		if r.data == none {
+			panic('Invalid Node')
+		} else {
 			index := pos - offset
 			r.data.insert(index, val)
 			return r
-		} else {
-			panic('Invalid Node')
 		}
 	} else {
 		if pos < r.weight {
 			r.weight += get_insert_value_size(val)
-			mut left := r.left or { panic('Invalid tree state: expected left node') }
-			left.insert(pos, val, offset)
+			if r.left == unsafe { nil } {
+				panic('Invalid tree state: expected left node')
+			}
+			return r.left.insert(pos, val, offset)
 		} else {
-			mut right := r.right or { panic('Invalid tree state: expected right node') }
-			right.insert(pos, val, r.weight)
+			if r.right == unsafe { nil } {
+				panic('Invalid tree state: expected right node')
+			}
+			return r.right.insert(pos, val, r.weight)
 		}
 	}
 }
 
 fn (mut r RopeNode) delete(pos int, num int, offset int) {
-	if r.left == none && r.right == none {
-		if r.data != none {
+	if r.left == unsafe { nil } && r.right == unsafe { nil } {
+		if r.data == none {
+			panic('Invalid Node')
+		} else {
 			index := pos - offset
 			r.data.delete(index, num)
 			r.weight = r.data.len()
-		} else {
-			panic('Invalid Node')
 		}
 	} else {
 		if pos < r.weight {
-			mut left := r.left or { panic('Invalid tree state: expected left node') }
-			left.delete(pos, num, offset)
-			r.weight = left.total_len()
+			if r.left == unsafe { nil } {
+				panic('Invalid tree state: expected left node')
+			}
+			r.left.delete(pos, num, offset)
+			r.weight = r.left.total_len()
 		} else {
-			mut right := r.right or { panic('Invalid tree state: expected right node') }
-			right.delete(pos, num, r.weight)
+			if r.right == unsafe { nil } {
+				panic('Invalid tree state: expected right node')
+			}
+			r.right.delete(pos, num, r.weight)
 		}
 	}
 }
