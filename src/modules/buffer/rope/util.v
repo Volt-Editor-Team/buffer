@@ -34,17 +34,40 @@ fn (r RopeBuffer) rope_iter() &RopeIter {
 	}
 }
 
-fn (mut r RopeBuffer) check_split(node &RopeNode) {
+fn (mut r RopeBuffer) check_split(mut node RopeNode) {
 	if node.left != none || node.right != none {
 		return
 	} else {
 		if node.data != none {
+			// split current node and remove data -- this node is no longer a leaf
 			if node.data.len() > r.node_cap {
-				// left, right := node.data.split()
-				// node.left = left
-				// node.right = right
-				// node.weight = left.len()
-				// node.data = none
+				left, right := node.data.split()
+				node.left = &RopeNode{
+					data: left
+				}
+				node.right = &RopeNode{
+					data: right
+				}
+				node.weight = left.len()
+				node.data = none
+			}
+
+			// recursive check left to split
+			if node.left != none {
+				if data := node.left.data {
+					if data.len() > r.node_cap {
+						r.check_split(mut node.left)
+					}
+				}
+			}
+
+			// recursive check right to split
+			if node.right != none {
+				if data := node.right.data {
+					if data.len() > r.node_cap {
+						r.check_split(mut node.right)
+					}
+				}
 			}
 		} else {
 			panic('Invalid Node')
@@ -84,11 +107,12 @@ pub fn (n &RopeNode) total_len() int {
 	}
 }
 
-fn (mut r RopeNode) insert(pos int, val InsertValue, offset int) {
+fn (mut r RopeNode) insert(pos int, val InsertValue, offset int) &RopeNode {
 	if r.left == none && r.right == none {
 		if r.data != none {
 			index := pos - offset
 			r.data.insert(index, val)
+			return r
 		} else {
 			panic('Invalid Node')
 		}

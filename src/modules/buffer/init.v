@@ -1,5 +1,6 @@
 module buffer
 
+// interface required for all buffer implementations
 pub interface Buffer {
 	to_string() string
 
@@ -21,9 +22,11 @@ mut:
 	delete(cursor int, n int)
 }
 
+// interface specifically for RopeBuffer,
+// which requires splitting ability
 pub interface RopeData {
 	Buffer
-	split() (Buffer, Buffer)
+	split() (RopeData, RopeData)
 }
 
 pub type InsertValue = rune | u8 | []rune | string

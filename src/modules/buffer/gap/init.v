@@ -1,7 +1,7 @@
 module gap
 
 import math
-import buffer { InsertValue }
+import buffer { InsertValue, RopeData }
 
 // --- initialization ---
 struct GapBuffer {
@@ -22,7 +22,7 @@ pub fn GapBuffer.new() GapBuffer {
 
 pub fn GapBuffer.from(data []rune) GapBuffer {
 	return GapBuffer{
-		data: []rune{len: data.len, cap: 2 * data.len, init: data[index]}
+		data: []rune{len: data.len, cap: math.min(max_cap, 2 * data.len), init: data[index]}
 		gap:  Gap{
 			start: data.len
 			end:   data.len
@@ -108,4 +108,14 @@ pub fn (g GapBuffer) index_to_line_col(i int) (int, int) {
 
 pub fn (g GapBuffer) line_col_to_index(line int, col int) int {
 	return 0
+}
+
+// splits gapbuffer into 2 ideally subsets,
+// creating two separate gap buffers.
+fn (g GapBuffer) split() (RopeData, RopeData) {
+	text := g.get_runes()
+	split := text.len / 2
+	left := GapBuffer.from(text[..split])
+	right := GapBuffer.from(text[split..])
+	return left, right
 }

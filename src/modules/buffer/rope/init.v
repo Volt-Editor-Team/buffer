@@ -6,7 +6,7 @@ import buffer { InsertValue, RopeData }
 pub struct RopeBuffer {
 mut:
 	root     &RopeNode
-	node_cap int = 2 // number of chacters in leaf before splitting
+	node_cap int = 4096 // number of chacters in leaf before splitting
 }
 
 @[heap]
@@ -39,7 +39,8 @@ pub fn RopeBuffer.new(b RopeData) RopeBuffer {
 // - [ ] line_col_to_index(line int, col int) int
 
 pub fn (mut r RopeBuffer) insert(cursor int, s InsertValue) {
-	r.root.insert(cursor, s, 0)
+	mut node := r.root.insert(cursor, s, 0)
+	r.check_split(mut node)
 }
 
 pub fn (mut r RopeBuffer) delete(cursor int, n int) {
@@ -56,8 +57,15 @@ pub fn (r RopeBuffer) to_string() string {
 	return res
 }
 
-pub fn len() int {
-	return 0
+pub fn (r RopeBuffer) len() int {
+	mut count := 0
+	for node in r.rope_iter() {
+		if node.data != none {
+			count += node.data.len()
+		}
+	}
+
+	return count
 }
 
 pub fn line_count() int {
