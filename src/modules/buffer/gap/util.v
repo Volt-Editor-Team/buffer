@@ -47,14 +47,19 @@ fn (mut g GapBuffer) shift_gap_to(curs int) {
 }
 
 // reallocation on gap too small
-fn check_gap_size(mut g GapBuffer, n_required int) {
+fn (mut g GapBuffer) check_gap_size(n_required int) {
 	gap_len := g.gap.end - g.gap.start
+	// more gap is needed
 	if gap_len < n_required {
 		g.shift_gap_to(g.data.len - gap_len)
+		// reallocation is required
 		if g.data.cap < g.data.len + n_required {
-			g.data.grow_cap(math.min(max_cap, 2 * math.max(g.data.len, gap_bytes)))
+			minimum_allocation := g.data.len + n_required + gap_bytes
+			generous_allocation := g.data.len * 2
+			g.data.grow_cap(math.max(minimum_allocation, math.min(max_cap, generous_allocation)))
 		}
-		unsafe { g.data.grow_len(gap_bytes) }
+		// increase length (growing gap) by minimum gap_bytes or as many as neccessary
+		unsafe { g.data.grow_len(math.max(gap_bytes, n_required)) }
 		g.gap.end = g.data.len
 	}
 }

@@ -18,8 +18,8 @@ pub interface Buffer {
 	line_col_to_index(line int, col int) int
 mut:
 	// --- edit functions ---
-	insert(cursor int, s InsertValue)
-	delete(cursor int, n int)
+	insert(cursor int, s InsertValue) !
+	delete(cursor int, n int) !
 }
 
 // interface specifically for RopeBuffer,

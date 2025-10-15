@@ -5,8 +5,8 @@ import buffer { InsertValue, RopeData }
 // --- initialization ---
 pub struct RopeBuffer {
 mut:
-	root     &RopeNode
-	node_cap int = 4096 // number of chacters in leaf before splitting
+	root     &RopeNode = unsafe { nil }
+	node_cap int       = 4096 // number of chacters in leaf before splitting
 }
 
 @[heap]
@@ -19,11 +19,11 @@ pub mut:
 }
 
 pub fn RopeBuffer.new(b RopeData) RopeBuffer {
-	return RopeBuffer{
-		root: &RopeNode{
-			data: b
-		}
+	mut rope := RopeBuffer{}
+	rope.root = &RopeNode{
+		data: b
 	}
+	return rope
 }
 
 // --- buffer interface ---
@@ -38,13 +38,15 @@ pub fn RopeBuffer.new(b RopeData) RopeBuffer {
 // - [ ] index_to_line_col(i int) (int, int)
 // - [ ] line_col_to_index(line int, col int) int
 
-pub fn (mut r RopeBuffer) insert(cursor int, s InsertValue) {
-	mut node := r.root.insert(cursor, s, 0)
-	r.check_split(mut node)
+pub fn (mut r RopeBuffer) insert(cursor int, s InsertValue) ! {
+	mut node := r.root.insert(cursor, s, 0)!
+	r.check_split(mut node)!
+	// node = r.check_rebalance(mut node)
 }
 
-pub fn (mut r RopeBuffer) delete(cursor int, n int) {
-	r.root.delete(cursor, n, 0)
+pub fn (mut r RopeBuffer) delete(cursor int, n int) ! {
+	mut node := r.root.delete(cursor, n, 0)!
+	node = r.check_rebalance(mut node)
 }
 
 pub fn (r RopeBuffer) to_string() string {
@@ -60,16 +62,15 @@ pub fn (r RopeBuffer) to_string() string {
 }
 
 pub fn (r RopeBuffer) len() int {
-	mut count := 0
-	mut nodes := []&RopeNode{}
-	in_order(r.root, mut nodes)
-	for node in nodes {
-		if node.data != none {
-			count += node.data.len()
-		}
-	}
+	return r.root.total_len()
+}
 
-	return count
+pub fn (r RopeBuffer) node_count() int {
+	return r.root.node_count()
+}
+
+pub fn (r RopeBuffer) leaf_count() int {
+	return r.root.leaf_count()
 }
 
 pub fn line_count() int {

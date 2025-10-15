@@ -42,19 +42,19 @@ pub fn GapBuffer.from(data []rune) GapBuffer {
 // - [ ] index_to_line_col(i int) (int, int)
 // - [ ] line_col_to_index(line int, col int) int
 
-pub fn (mut g GapBuffer) insert(index int, val InsertValue) {
+pub fn (mut g GapBuffer) insert(index int, val InsertValue) ! {
 	match val {
 		rune {
-			g.insert_rune(index, val)
+			g.insert_rune(index, val)!
 		}
 		u8 {
-			g.insert_char(index, val)
+			g.insert_char(index, val)!
 		}
 		[]rune {
-			g.insert_runes(index, val)
+			g.insert_runes(index, val)!
 		}
 		string {
-			g.insert_string(index, val)
+			g.insert_string(index, val)!
 		}
 	}
 }
@@ -64,7 +64,7 @@ pub fn (mut g GapBuffer) insert(index int, val InsertValue) {
 // 	g.gap.end = math.min(g.gap.end + count, g.data.len)
 // }
 
-pub fn (mut g GapBuffer) delete(cursor int, count int) {
+pub fn (mut g GapBuffer) delete(cursor int, count int) ! {
 	g.shift_gap_to(cursor)
 	g.gap.end = math.min(g.gap.end + count, g.data.len)
 }
