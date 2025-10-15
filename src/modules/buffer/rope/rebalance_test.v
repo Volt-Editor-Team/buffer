@@ -26,7 +26,7 @@ fn test_rebalance_rotations() {
 	assert r.root.right.node_count() == 0
 
 	// 2. Force rebalance on the root
-	r.root = r.check_rebalance(mut r.root)
+	r.root = r.root.check_rebalance()
 
 	// 3. Verify a rotation occurred
 	assert r.root.left != unsafe { nil } // should still have children

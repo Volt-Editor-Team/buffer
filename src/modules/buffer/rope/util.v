@@ -111,14 +111,14 @@ fn (n &RopeNode) node_count() int {
 	return total
 }
 
-fn (mut r RopeNode) insert(pos int, val InsertValue, offset int) !&RopeNode {
+fn (mut r RopeNode) insert(pos int, val InsertValue, offset int, node_cap int) !&RopeNode {
 	if r.left == unsafe { nil } && r.right == unsafe { nil } {
 		if r.data == none {
 			return error('Invalid Node')
 		} else {
 			index := pos - offset
 			r.data.insert(index, val)!
-			return r
+			r.check_split(node_cap)!
 		}
 	} else {
 		if pos < r.weight {
@@ -126,17 +126,18 @@ fn (mut r RopeNode) insert(pos int, val InsertValue, offset int) !&RopeNode {
 			if r.left == unsafe { nil } {
 				return error('Invalid tree state: expected left node')
 			}
-			return r.left.insert(pos, val, offset)
+			r.left.insert(pos, val, offset, node_cap)!
 		} else {
 			if r.right == unsafe { nil } {
 				return error('Invalid tree state: expected right node')
 			}
-			return r.right.insert(pos, val, r.weight)
+			r.right.insert(pos, val, r.weight, node_cap)!
 		}
 	}
+	return r.check_rebalance()
 }
 
-fn (mut r RopeNode) delete(pos int, num int, offset int) !&RopeNode {
+fn (mut r RopeNode) delete(pos int, num int, offset int, node_cap int) !&RopeNode {
 	if r.left == unsafe { nil } && r.right == unsafe { nil } {
 		if r.data == none {
 			return error('Invalid Node')
@@ -144,7 +145,6 @@ fn (mut r RopeNode) delete(pos int, num int, offset int) !&RopeNode {
 			index := pos - offset
 			r.data.delete(index, num)!
 			r.weight = r.data.len()
-			return r
 		}
 	} else {
 		if pos < r.weight {
@@ -152,12 +152,13 @@ fn (mut r RopeNode) delete(pos int, num int, offset int) !&RopeNode {
 				return error('Invalid tree state: expected left node')
 			}
 			r.weight = r.left.total_len()
-			return r.left.delete(pos, num, offset)
+			r.left.delete(pos, num, offset, node_cap)!
 		} else {
 			if r.right == unsafe { nil } {
 				return error('Invalid tree state: expected right node')
 			}
-			return r.right.delete(pos, num, r.weight)
+			r.right.delete(pos, num, r.weight, node_cap)!
 		}
 	}
+	return r.check_rebalance()
 }

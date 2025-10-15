@@ -39,14 +39,11 @@ pub fn RopeBuffer.new(b RopeData) RopeBuffer {
 // - [ ] line_col_to_index(line int, col int) int
 
 pub fn (mut r RopeBuffer) insert(cursor int, s InsertValue) ! {
-	mut node := r.root.insert(cursor, s, 0)!
-	r.check_split(mut node)!
-	// node = r.check_rebalance(mut node)
+	r.root = r.root.insert(cursor, s, 0, r.node_cap)!
 }
 
 pub fn (mut r RopeBuffer) delete(cursor int, n int) ! {
-	mut node := r.root.delete(cursor, n, 0)!
-	node = r.check_rebalance(mut node)
+	r.root = r.root.delete(cursor, n, 0, r.node_cap)!
 }
 
 pub fn (r RopeBuffer) to_string() string {

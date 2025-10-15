@@ -2,7 +2,7 @@ module rope
 
 const balance_constant = 1.5
 
-fn (mut r RopeBuffer) check_rebalance(mut n RopeNode) &RopeNode {
+fn (mut n RopeNode) check_rebalance() &RopeNode {
 	left, right := n.get_weights()
 	// rotate left
 	if left > balance_constant * f32(right) {
@@ -71,7 +71,7 @@ fn (mut n RopeNode) rotate_right() &RopeNode {
 	return new_root
 }
 
-fn (mut r RopeBuffer) check_split(mut node RopeNode) ! {
+fn (mut node RopeNode) check_split(node_cap int) ! {
 	if node.left != unsafe { nil } || node.right != unsafe { nil } {
 		return error('No node to check')
 	} else {
@@ -79,7 +79,7 @@ fn (mut r RopeBuffer) check_split(mut node RopeNode) ! {
 			return error('Invalid Node')
 		} else {
 			// split current node and remove data -- this node is no longer a leaf
-			if node.data.len() > r.node_cap {
+			if node.data.len() > node_cap {
 				left, right := node.data.split()
 				node.data = none
 				node.left = &RopeNode{
@@ -94,8 +94,8 @@ fn (mut r RopeBuffer) check_split(mut node RopeNode) ! {
 			// recursive check left to split
 			if node.left != unsafe { nil } {
 				if data := node.left.data {
-					if data.len() > r.node_cap {
-						r.check_split(mut node.left)!
+					if data.len() > node_cap {
+						node.left.check_split(node_cap)!
 					}
 				}
 			}
@@ -103,8 +103,8 @@ fn (mut r RopeBuffer) check_split(mut node RopeNode) ! {
 			// recursive check right to split
 			if node.right != unsafe { nil } {
 				if data := node.right.data {
-					if data.len() > r.node_cap {
-						r.check_split(mut node.right)!
+					if data.len() > node_cap {
+						node.right.check_split(node_cap)!
 					}
 				}
 			}
