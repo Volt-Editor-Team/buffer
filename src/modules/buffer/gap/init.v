@@ -99,7 +99,7 @@ pub fn (g GapBuffer) char_at(index int) rune {
 }
 
 pub fn (g GapBuffer) slice(start int, end int) string {
-	return ''
+	return g.get_runes()[start..end].string()
 }
 
 pub fn (g GapBuffer) index_to_line_col(i int) (int, int) {

@@ -51,8 +51,8 @@ pub fn (r RopeBuffer) to_string() string {
 	mut nodes := []&RopeNode{}
 	in_order(r.root, mut nodes)
 	for node in nodes {
-		if node.data != none {
-			res += node.data.to_string()
+		if data := node.data {
+			res += data.to_string()
 		}
 	}
 	return res
