@@ -1,3 +1,5 @@
+> This repository is DEPRECATED.
+
 # Rewrite
 
 upon consideration to implementing a gap/rope buffer its become obvious that a project rewrite will most likely be necessary. Fix all the slop with restructuring.
